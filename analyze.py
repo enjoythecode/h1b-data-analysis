@@ -1,8 +1,10 @@
 import os
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 
 DATA_FOLDER = "data/"
+RESULT_FOLDER = "result/"
 NORMALIZE_COLUMN_NAME_MAPPING = {
     "Initial Approval": "Initial Approvals",
     "Initial Denial": "Initial Denials",
@@ -29,9 +31,6 @@ def load_csv(filename):
     df = df.groupby(df["Employer"]).aggregate(aggregation_functions)
     df.reset_index(inplace=True)
 
-    #print(df[df["Employer"] == "DELOITTE CONSULTING LLP"])
-    #print(sum(df["Approvals"]))
-    #print(df.sort_values(by=['Approvals'],ascending=False))
     df["Year"] = fiscal_year
     print(f"Loaded data for FY {fiscal_year}")
     return fiscal_year, df
@@ -43,10 +42,41 @@ data_frames = [load_csv(DATA_FOLDER+data_files[i]) for i in range(len(data_files
 data_by_year = {str(year):df for (year, df) in data_frames}
 
 all_data = pd.concat([df for (year, df) in data_frames])
-print(all_data)
-print(all_data[all_data["Employer"] == "DELOITTE CONSULTING LLP"])
 
-# TODO:
-# plot at the top employers of 2022
-# plot number of petitions, and the corresponding success possibility across all years
+####################
+count_by_year = all_data.groupby("Year").sum()[:-1]
+count_by_year.reset_index(inplace=True)
+VISA_CAP = 85000
+count_by_year["Expected Lottery Chance"] = VISA_CAP / count_by_year["Approvals"] * 100
+
+fig, ax = plt.subplots(1,1, figsize=(12, 7))
+color = "tab:blue"
+ax.plot(count_by_year["Year"], count_by_year["Approvals"], color=color)
+ax.set_xticks(list(range(2009, 2022)))
+ax.set_xlabel("Fiscal Year")
+ax.set_ylabel("Number of Approved H-1B Petitions", color=color)
+
+color = 'tab:red'
+ax2=ax.twinx()
+ax2.plot(count_by_year["Year"], count_by_year["Expected Lottery Chance"], color=color)
+ax2.set_ylabel("Expected Lottery Chance", color=color)
+ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+fig.savefig(RESULT_FOLDER + "approved_petitions_by_year.png")
+####################
+
+####################
+data_2021 = data_by_year["2021"]
+total_approvals_2021 = sum(data_2021["Approvals"])
+data_2021["Share of All Approvals"] = data_2021["Approvals"] / total_approvals_2021 * 100
+
+top_10_2021 = data_2021.sort_values(by=['Approvals'],ascending=False)[["Employer", "Approvals", "Share of All Approvals"]][:10]
+top_10_2021.to_csv(RESULT_FOLDER + "top_10_employers_2021.csv")
+
+top_10_employers = top_10_2021["Employer"]
+####################
+
+# TODO
 # plot the number of petitions by the top 5 employers of 2022 across all years
