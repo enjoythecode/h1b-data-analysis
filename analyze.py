@@ -46,4 +46,7 @@ all_data = pd.concat([df for (year, df) in data_frames])
 print(all_data)
 print(all_data[all_data["Employer"] == "DELOITTE CONSULTING LLP"])
 
-# 
+# TODO:
+# plot at the top employers of 2022
+# plot number of petitions, and the corresponding success possibility across all years
+# plot the number of petitions by the top 5 employers of 2022 across all years
