@@ -98,21 +98,12 @@ fig, ax = plt.subplots(1,1, figsize=(12, 7))
 
 plot_employer_list = consultancies
 
-print(all_data[all_data["Employer"].str.contains("COGNI", na=False)].sort_values("Approvals", ascending=False)["Employer"][:20])
-
 for employer in plot_employer_list:
     employer_data = all_data[all_data["Employer"] == employer]
     employer_data = employer_data.sort_values("Year")
     ax.plot(employer_data["Year"], employer_data["Approvals"], label = employer)
 ax.legend()
-fig.savefig(RESULT_FOLDER + "top_employers_across_years.png")
-
-# 
-#top_10_all_years = all_data[all_data["Employer"] in top_10_employers]
-#print(top_10_all_years)
-####################
-
-# TODO
-# plot the number of petitions by the top 5 employers of 2022 across all years 
-    # - axis labels
-    # - drop 0 values
+ax.set_xticks(list(range(2009, 2022)))
+ax.set_xlabel("Fiscal Year")
+ax.set_ylabel("Accepted H-1B Petitions per Consultancy Company")
+fig.savefig(RESULT_FOLDER + "consultancies_years.png")
